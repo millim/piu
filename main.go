@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"genie-api/client"
+	"genie-api/comm"
 	"genie-api/server"
 	"os"
 	"os/exec"
@@ -18,8 +19,6 @@ func RunAsDaemon(args []string) {
 		_args = append(_args, v)
 
 	}
-
-	fmt.Println(_args)
 	cmd := exec.Command(_args[0], _args[1:]...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
@@ -37,13 +36,11 @@ var service ServiceImp
 
 func main() {
 	daemon := flag.Bool("d", false, "is daemon")
-
-	fmt.Println(os.Args)
+	version := flag.Bool("version", false, "is daemon")
 	if len(os.Args) <= 1 || (os.Args[1] != "server" && os.Args[1] != "client") {
 		fmt.Println("need input: main server or main client")
 		os.Exit(0)
 	}
-
 	switch os.Args[1] {
 	case "server":
 		service = &server.Server{}
@@ -56,6 +53,12 @@ func main() {
 	_args = append(_args, os.Args[2:]...)
 	os.Args = _args
 	flag.Parse()
+	if version != nil && *version {
+		fmt.Println(fmt.Sprintf("piu version is %s", comm.Version))
+		os.Exit(0)
+		return
+	}
+
 	if daemon != nil && *daemon {
 		RunAsDaemon(tempArgs)
 		os.Exit(0)

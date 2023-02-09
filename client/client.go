@@ -8,11 +8,13 @@ import (
 )
 
 type Client struct {
-	Time string
+	Time      string
+	ServerUrl string
 }
 
 func (c *Client) InitArgs() {
 	flag.StringVar(&c.Time, "time", "30m", "duration time, example: 1h, 3m, default: 30m")
+	flag.StringVar(&c.ServerUrl, "server-url", "http://localhost:8080", "server url")
 }
 
 func (c *Client) Run() {
@@ -26,7 +28,6 @@ func (c *Client) Run() {
 			updateIPs()
 		}
 	}()
-	fmt.Println("66666")
 	select {}
 }
 

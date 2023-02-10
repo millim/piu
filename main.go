@@ -3,11 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"genie-api/client"
-	"genie-api/comm"
-	"genie-api/server"
 	"os"
 	"os/exec"
+	"piu/client"
+	"piu/comm"
+	"piu/server"
 )
 
 func RunAsDaemon(args []string) {

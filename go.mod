@@ -1,3 +1,3 @@
-module genie-api
+module piu
 
 go 1.18

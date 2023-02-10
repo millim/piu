@@ -1,9 +1,14 @@
 package client
 
 import (
+	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"net"
+	"net/http"
+	"strings"
 	"time"
 )
 
@@ -22,10 +27,12 @@ func (c *Client) Run() {
 	if err != nil {
 		fmt.Println("timeFormat error, example: 10s, 1h")
 	}
+	fmt.Println(c.ServerUrl)
+	updateIPs(c.ServerUrl)
 	ticker := time.NewTicker(duration)
 	go func() {
 		for range ticker.C {
-			updateIPs()
+			updateIPs(c.ServerUrl)
 		}
 	}()
 	select {}
@@ -36,7 +43,6 @@ func getLocalIPs() (ips []string) {
 	if err != nil {
 		return
 	}
-
 	for _, address := range addrs {
 		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
 			if ipnet.IP.To16() != nil {
@@ -48,7 +54,29 @@ func getLocalIPs() (ips []string) {
 	return
 }
 
-func updateIPs() {
+func updateIPs(serverURL string) {
 	ips := getLocalIPs()
-	fmt.Println("ips -->", ips)
+	body := map[string]string{
+		"key":   "ip",
+		"value": strings.Join(ips, ","),
+	}
+	data, _ := json.Marshal(body)
+	request, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/values", serverURL), bytes.NewBuffer(data))
+	request.Header.Add("Content-Type", "application/json; charset=UTF-8")
+	if err != nil {
+		fmt.Println("request err:", err)
+		return
+	}
+	client := http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		fmt.Println("client request err:", err)
+		return
+	}
+	if response.StatusCode == http.StatusOK {
+		fmt.Println("update ip success")
+	} else {
+		data, _ := ioutil.ReadAll(response.Body)
+		fmt.Println(string(data))
+	}
 }

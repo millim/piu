@@ -51,7 +51,35 @@ func getLocalIPs() (ips []string) {
 		}
 	}
 
+	_ip := getPublicIP()
+	ips = append(ips, _ip...)
 	return
+}
+
+func getPublicIP() []string {
+	ips := make([]string, 0)
+	req, err := http.NewRequest(http.MethodGet, "http://httpbin.org/ip", nil)
+	if err != nil {
+		return nil
+	}
+	resp, _ := http.DefaultClient.Do(req)
+	if resp.StatusCode == 200 {
+		dec := json.NewDecoder(resp.Body)
+		var s map[string]string
+		dec.Decode(&s)
+		ip := s["origin"]
+		ips = append(ips, ip)
+	}
+	req, err = http.NewRequest(http.MethodGet, "https://6.ipw.cn", nil)
+	if err != nil {
+		return nil
+	}
+	resp, _ = http.DefaultClient.Do(req)
+	if resp.StatusCode == 200 {
+		ipv6string, _ := ioutil.ReadAll(resp.Body)
+		ips = append(ips, string(ipv6string))
+	}
+	return ips
 }
 
 func updateIPs(serverURL string) {
